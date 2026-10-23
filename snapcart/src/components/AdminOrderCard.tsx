@@ -60,15 +60,24 @@ const AdminOrderCard = ({ order }: { order: IOrder }) => {
         }
     }
 
+    useEffect(() => {
+        if (order.status) {
+            setStatus(order.status)
+        }
+    }, [order.status])
+
     useEffect((): any => {
         const socket = getSocket()
-        socket.on("order-status-update", (data) => {
-            if (data.orderId.toString() == order?._id!.toString()) {
+        const handleStatusUpdate = (data: { orderId: string, status: string }) => {
+            if (data?.orderId && order?._id && data.orderId.toString() === order._id.toString()) {
                 setStatus(data.status)
             }
-        })
-        return () => socket.off("order-status-update")
-    }, [])
+        }
+        socket.on("order-status-update", handleStatusUpdate)
+        return () => {
+            socket.off("order-status-update", handleStatusUpdate)
+        }
+    }, [order?._id])
 
     return (
         <motion.div

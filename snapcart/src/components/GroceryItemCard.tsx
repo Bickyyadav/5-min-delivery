@@ -96,7 +96,7 @@ const GroceryItemCard = ({ item }: { item: IGroceryCardItem }) => {
                         onClick={() => dispatch(addToCart({ ...item, quantity: 1 } as any))}
                     >
                         <ShoppingCart size={16} /> 
-                        Available &bull; Add
+                        Add to Cart
                     </motion.button>
                 ) : (
                     <motion.div

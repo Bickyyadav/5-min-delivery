@@ -62,29 +62,32 @@ const page = () => {
 
     useEffect(() => {
         const socket = getSocket()
-        socket?.on("new-order", (newOrder) => {
-            setOrders((prev) => [newOrder, ...prev!])
-        })
-        socket.on("order-assigned", ({ orderId, assignedDeliveryBoy }) => {
-            setOrders((prev) => prev?.map((o) => (
-                o._id == orderId ? { ...o, assignedDeliveryBoy } : o
-            )))
-        })
-        return () => {
-            socket.off("new-order")
-            socket.off("order-assigned")
 
+        const handleNewOrder = (newOrder: IOrder) => {
+            setOrders((prev) => [newOrder, ...(prev || [])])
         }
-    }, [])
 
+        const handleOrderAssigned = ({ orderId, assignedDeliveryBoy }: { orderId: string, assignedDeliveryBoy: IUser }) => {
+            setOrders((prev) => prev?.map((o) => (
+                o._id?.toString() === orderId.toString() ? { ...o, assignedDeliveryBoy } : o
+            )))
+        }
 
+        const handleStatusUpdate = ({ orderId, status }: { orderId: string, status: "pending" | "out of delivery" | "delivered" }) => {
+            setOrders((prev) => prev?.map((o) => (
+                o._id?.toString() === orderId.toString() ? { ...o, status } : o
+            )))
+        }
 
-    useEffect(() => {
-        const socket = getSocket()
-        socket?.on("new-order", (newOrder) => {
-            setOrders((prev) => [newOrder, ...prev!])
-        })
-        return () => { socket.off("new-order") }
+        socket.on("new-order", handleNewOrder)
+        socket.on("order-assigned", handleOrderAssigned)
+        socket.on("order-status-update", handleStatusUpdate)
+
+        return () => {
+            socket.off("new-order", handleNewOrder)
+            socket.off("order-assigned", handleOrderAssigned)
+            socket.off("order-status-update", handleStatusUpdate)
+        }
     }, [])
 
     return (
@@ -100,7 +103,7 @@ const page = () => {
             <div className='max-w-6xl mx-auto px-4 pt-24 pb-16 space-y-8'>
                 <div className='space-y-6'>
                     {orders?.map((order, index) => (
-                        <AdminOrderCard key={index} order={order} />
+                        <AdminOrderCard key={order._id?.toString() || index} order={order} />
                     ))}
                 </div>
             </div>

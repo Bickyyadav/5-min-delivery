@@ -43,18 +43,48 @@ interface IOrder {
 
 const UserOrderCard = ({ order }: { order: IOrder }) => {
     const [status, setStatus] = useState(order.status)
+    const [assignedDeliveryBoy, setAssignedDeliveryBoy] = useState<IUser | undefined>(order.assignedDeliveryBoy)
     const [expanded, setExpanded] = useState(false)
     const router = useRouter()
 
+    useEffect(() => {
+        if (order.status) {
+            setStatus(order.status)
+        }
+    }, [order.status])
+
+    useEffect(() => {
+        if (order.assignedDeliveryBoy) {
+            setAssignedDeliveryBoy(order.assignedDeliveryBoy)
+        }
+    }, [order.assignedDeliveryBoy])
+
     useEffect((): any => {
         const socket = getSocket()
-        socket.on("order-status-update", (data) => {
-            if (data.orderId.toString() == order?._id!.toString()) {
+
+        const handleStatusUpdate = (data: { orderId: string, status: "pending" | "out of delivery" | "delivered", assignedDeliveryBoy?: IUser }) => {
+            if (data?.orderId && order?._id && data.orderId.toString() === order._id.toString()) {
                 setStatus(data.status)
+                if (data.assignedDeliveryBoy) {
+                    setAssignedDeliveryBoy(data.assignedDeliveryBoy)
+                }
             }
-        })
-        return () => socket.off("order-status-update")
-    }, [])
+        }
+
+        const handleOrderAssigned = (data: { orderId: string, assignedDeliveryBoy: IUser }) => {
+            if (data?.orderId && order?._id && data.orderId.toString() === order._id.toString()) {
+                setAssignedDeliveryBoy(data.assignedDeliveryBoy)
+            }
+        }
+
+        socket.on("order-status-update", handleStatusUpdate)
+        socket.on("order-assigned", handleOrderAssigned)
+
+        return () => {
+            socket.off("order-status-update", handleStatusUpdate)
+            socket.off("order-assigned", handleOrderAssigned)
+        }
+    }, [order?._id])
 
 
     const getStatusColor = (status: string) => {
@@ -89,7 +119,7 @@ const UserOrderCard = ({ order }: { order: IOrder }) => {
                     >
                         {order.isPaid ? "Paid" : "Unpaid"}
                     </span>}
-                    <span className={`px-3 py-1 text-xs font-semibold border rounded-full ${getStatusColor(
+                    <span className={`px-3 py-1 text-xs font-semibold border rounded-full capitalize ${getStatusColor(
                         status
                     )}`}
                     >
@@ -127,20 +157,55 @@ const UserOrderCard = ({ order }: { order: IOrder }) => {
                     </div>
                 </div>
 
-                {order.assignedDeliveryBoy && <><div className='mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between'>
-                    <div className='flex items-center gap-3 text-sm text-gray-700'>
-                        <UserCheck className="text-blue-600" size={18} />
-                        <div className='font-semibold text-gray-800'>
-                            <p className=''>Assigned to : <span>{order.assignedDeliveryBoy.name}</span></p>
-                            <p className='text-xs text-gray-600'>📞 +91 {order.assignedDeliveryBoy.mobile}</p>
-                        </div>
+                {status === "out of delivery" && (
+                    <div className='mt-3 space-y-3'>
+                        {assignedDeliveryBoy ? (
+                            <div className='bg-blue-50/80 border border-blue-200/80 rounded-2xl p-3.5 flex items-center justify-between shadow-xs'>
+                                <div className='flex items-center gap-3 text-sm text-gray-700'>
+                                    <div className='w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0'>
+                                        <UserCheck size={20} />
+                                    </div>
+                                    <div className='font-semibold text-gray-800 leading-tight'>
+                                        <p className='text-xs text-blue-600 font-bold uppercase tracking-wider'>Delivery Partner Assigned</p>
+                                        <p className='text-sm text-gray-900 mt-0.5'>{assignedDeliveryBoy.name}</p>
+                                        <p className='text-xs text-gray-500 font-normal mt-0.5'>📞 +91 {assignedDeliveryBoy.mobile}</p>
+                                    </div>
+                                </div>
+                                <a
+                                    href={`tel:${assignedDeliveryBoy.mobile}`}
+                                    className='bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-xs active:scale-95'
+                                >
+                                    Call
+                                </a>
+                            </div>
+                        ) : (
+                            <div className='bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3.5 flex items-center gap-3 shadow-xs'>
+                                <div className='relative w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 shrink-0'>
+                                    <Truck size={20} className='animate-bounce' />
+                                    <span className='absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full animate-ping' />
+                                </div>
+                                <div className='text-xs'>
+                                    <p className='font-bold text-amber-900'>Order is Out for Delivery!</p>
+                                    <p className='text-amber-700 mt-0.5'>Finding and assigning the nearest delivery partner for your order...</p>
+                                </div>
+                            </div>
+                        )}
+                        <button
+                            className='w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-md transition active:scale-98'
+                            onClick={() => router.push(`/user/track-order/${order._id?.toString()}`)}
+                        >
+                            <Truck size={18} />
+                            Track Your Order Live
+                        </button>
                     </div>
+                )}
 
-                    <a href={`tel:${order.assignedDeliveryBoy.mobile}`} className='bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700 transition'>Call</a>
-                </div>
-                    <button className='w-full flex items-center justify-center gap-2 bg-green-600 text-white font-semibold px-4 py-2 rounded-xl shadow hover:bg-green-700 transition' onClick={() => router.push(`/user/track-order/${order._id?.toString()}`)}><Truck size={18} /> Track Your Order</button>
-                </>
-                }
+                {status === "delivered" && (
+                    <div className='mt-3 bg-green-50 border border-green-200 rounded-2xl p-3 flex items-center gap-2.5 text-xs text-green-800 font-semibold'>
+                        <Truck size={16} className='text-green-600' />
+                        <span>Order has been successfully delivered!</span>
+                    </div>
+                )}
 
                 <div className='border border-gray-100 rounded-xl overflow-hidden shadow-xs'>
                     <button

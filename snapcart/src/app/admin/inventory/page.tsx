@@ -1,23 +1,23 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { 
-    ArrowLeft, 
-    Boxes, 
-    Check, 
-    Crosshair, 
-    Eye, 
-    EyeOff, 
-    Globe, 
-    Layers, 
-    Loader2, 
-    MapPin, 
-    Package, 
-    Save, 
-    Search, 
-    Sparkles, 
-    Store, 
-    TrendingUp 
+import {
+    ArrowLeft,
+    Boxes,
+    Check,
+    Crosshair,
+    Eye,
+    EyeOff,
+    Globe,
+    Layers,
+    Loader2,
+    MapPin,
+    Package,
+    Save,
+    Search,
+    Sparkles,
+    Store,
+    TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -550,9 +550,8 @@ export default function AdminInventoryPage() {
                                             key={item._id}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
-                                            className={`bg-white rounded-2xl p-4 border transition-all shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 ${
-                                                isAvailable ? 'border-gray-100 hover:border-green-300' : 'border-red-100 bg-red-50/20'
-                                            }`}
+                                            className={`bg-white rounded-2xl p-4 border transition-all shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 ${isAvailable ? 'border-gray-100 hover:border-green-300' : 'border-red-100 bg-red-50/20'
+                                                }`}
                                         >
                                             <div className='flex items-center gap-4 w-full sm:w-auto'>
                                                 <div className='relative w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0'>
@@ -597,11 +596,10 @@ export default function AdminInventoryPage() {
                                                     <button
                                                         type='button'
                                                         onClick={() => handleToggleAvailability(item._id)}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                                                            isAvailable
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${isAvailable
                                                                 ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
                                                                 : 'bg-red-100 text-red-600 hover:bg-red-200 border border-red-300'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {isAvailable ? (
                                                             <>

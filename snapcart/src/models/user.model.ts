@@ -12,15 +12,8 @@ export interface IUser {
     socketId: string | null
     isOnline: Boolean
     location?: {
-        type: {
-            type: StringConstructor;
-            enum: string[];
-            default: string;
-        };
-        coordinates: {
-            type: NumberConstructor[];
-            default: number[];
-        };
+        type: string;
+        coordinates: number[];
     }
 }
 
